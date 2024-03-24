@@ -1,22 +1,17 @@
 import time
 import streamlit as st
 from code_editor import code_editor
-from vanna.remote import VannaDefault
-import chromadb
+from vanna.openai.openai_chat import OpenAI_Chat
+from vanna.chromadb.chromadb_vector import ChromaDB_VectorStore
 
 st.set_page_config(layout="wide")
 
-# chromadb 클라이언트 생성 (구식 설정을 최신 방식으로 변경하는 예시입니다. 실제로는 최신 문서를 확인해야 합니다.)
-client = chromadb.Client(
-    implementation="duckdb",  # 예상되는 변경: 'chroma_db_impl' -> 'implementation'
-    storage_path="chromadb"   # 예상되는 변경: 'persist_directory' -> 'storage_path'
-)
+class MyVanna(ChromaDB_VectorStore, OpenAI_Chat):
+    def __init__(self, config=None):
+        ChromaDB_VectorStore.__init__(self, config=config)
+        OpenAI_Chat.__init__(self, config=config)
 
-# Vanna 모델 초기화 (이 부분은 Vanna 라이브러리의 업데이트에 따라 달라질 수 있습니다. 'VannaDefault'와 관련된 최신 문서를 확인해야 합니다.)
-vn = VannaDefault(
-    chromadb_client=client,
-    config={'api_key': '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', 'model': 'gpt-3.5-turbo'}
-)
+vn = MyVanna(config={'api_key': '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', 'model': 'gpt-3.5-turbo'})
 
 st.sidebar.title("Output Settings")
 st.sidebar.checkbox("Show SQL", value=True, key="show_sql")
