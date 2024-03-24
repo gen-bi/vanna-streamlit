@@ -11,7 +11,7 @@ class MyVanna(ChromaDB_VectorStore, OpenAI_Chat):
         ChromaDB_VectorStore.__init__(self, config=config)
         OpenAI_Chat.__init__(self, config=config)
 
-vn = MyVanna(config={'api_key': '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', 'model': 'gpt-3.5-turbo'})
+vn = MyVanna(config={'api_key': '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', 'model': 'gpt-3.5-turbo'})
 
 st.sidebar.title("Output Settings")
 st.sidebar.checkbox("Show SQL", value=True, key="show_sql")
