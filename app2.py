@@ -4,14 +4,24 @@ from code_editor import code_editor
 from vanna.openai.openai_chat import OpenAI_Chat
 from vanna.chromadb.chromadb_vector import ChromaDB_VectorStore
 
-st.set_page_config(layout="wide")
-
 class MyVanna(ChromaDB_VectorStore, OpenAI_Chat):
     def __init__(self, config=None):
         ChromaDB_VectorStore.__init__(self, config=config)
         OpenAI_Chat.__init__(self, config=config)
 
-vn = MyVanna(config={'api_key': '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', 'model': 'gpt-3.5-turbo'})
+vn = MyVanna(config={'api_key': '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', 'model': 'gpt-3.5-turbo'})
+
+vn.connect_to_postgres(host='10.231.27.113', dbname='sedp-dev-client-wfd', user='wfd_admin', password='wfd_admin!0', port='5432')
+
+# st.set_page_config(layout="wide")
+# 스트림릿 앱 설정
+# Streamlit emoji shortcodes - https://streamlit-emoji-shortcodes-streamlit-app-gwckff.streamlit.app/
+st.set_page_config(
+page_title="롯데웰푸드 BI Q&A using GPT3.5 Turbo",
+page_icon=":robot_face:")
+
+st.image("wfd.png", width=200)
+st.title("_:red[BI Q&A] using GPT3.5 Turbo_ :robot_face:")
 
 st.sidebar.title("Output Settings")
 st.sidebar.checkbox("Show SQL", value=True, key="show_sql")
@@ -19,10 +29,7 @@ st.sidebar.checkbox("Show Table", value=True, key="show_table")
 st.sidebar.checkbox("Show Plotly Code", value=True, key="show_plotly_code")
 st.sidebar.checkbox("Show Chart", value=True, key="show_chart")
 st.sidebar.checkbox("Show Follow-up Questions", value=True, key="show_followup")
-
-st.title("Vanna AI")
 st.sidebar.write(st.session_state)
-
 
 def set_question(question):
     st.session_state["my_question"] = question
@@ -78,9 +85,10 @@ if my_question:
             st.warning(
                 "Please fix the generated SQL code. Once you're done hit Shift + Enter to submit"
             )
+            # 코드 편집기 생성
             sql_response = code_editor(sql, lang="sql")
+            
             fixed_sql_query = sql_response["text"]
-
             if fixed_sql_query != "":
                 df = vn.run_sql(sql=fixed_sql_query)
             else:
@@ -144,7 +152,8 @@ if my_question:
                         "assistant",
                         avatar="https://ask.vanna.ai/static/img/vanna_circle.png",
                     )
-                    fig = vn.generate_plot(code=code, df=df)
+                    # fig = vn.generate_plot(code=code, df=df)
+                    fig = vn.get_plotly_figure(plotly_code=code, df=df, dark_mode=False)
                     if fig is not None:
                         assistant_message_chart.plotly_chart(fig)
                     else:
@@ -155,9 +164,10 @@ if my_question:
                         "assistant",
                         avatar="https://ask.vanna.ai/static/img/vanna_circle.png",
                     )
-                    followup_questions = vn.generate_followup(
-                        question=my_question, df=df
-                    )
+                    # followup_questions = vn.generate_followup(
+                    #     question=my_question, df=df
+                    # )
+                    followup_questions = vn.generate_followup_questions(question=my_question, sql=sql, df=df)
                     st.session_state["df"] = None
 
                     if len(followup_questions) > 0:
